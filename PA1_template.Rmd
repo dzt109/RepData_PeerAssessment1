@@ -8,18 +8,142 @@ output:
 
 ## Loading and preprocessing the data
 
+1. Download the file and unzip it.
 
+```{r, echo=TRUE}
+
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip",destfile=".\\repdataproj.zip")
+
+for (i in dir(pattern="\\.zip$"))
+{  unzip(i) }
+```
+
+2. Set working directory to the unzipped folder and read the CSV file. 
+```{r, echo=TRUE}
+setwd("repdata-data-activity")
+adat<-read.csv("activity.csv")
+```
+
+
+3. Convert to date format
+```{r, echo=TRUE}
+adat$date<-as.Date(as.character(adat$date))
+```
+
+4. Load a required library
+```{r, echo=TRUE}
+library(plyr)
+```
+
+5. Save a copy of the original dataset. Remove all NAs for the first analysis.
+
+```{r, echo=TRUE}
+adat2<-adat
+adat<-adat[!is.na(adat$steps),]
+```
 
 ## What is mean total number of steps taken per day?
 
+1. Use library plyr for summarizing data by date
+```{r, echo=TRUE}
+adatsum<-ddply(adat,~date,summarize,total=sum(steps))
+```
 
+2. Calculate mean and median number of steps per day
+
+```{r, echo=TRUE}
+meansteps <- mean(adatsum$total)
+mediansteps <- median(adatsum$total)
+```
+
+The mean number of steps per day are `r as.integer(meansteps)`
+The median number of steps per day are `r mediansteps`
 
 ## What is the average daily activity pattern?
 
+1. Calculate activity pattern by 5-min interval
 
+```{r, echo=TRUE}
+aintavg<-ddply(adat,~interval,summarize,avg=mean(steps))
+```
+
+2. Plot activity pattern by 5-min interval
+
+```{r, echo=TRUE}
+with(aintavg,plot(x=interval, y=avg, type='l'))
+```
+
+3. Find interval with max average number of steps
+```{r, echo=TRUE}
+maxstepinterval <- aintavg$interval[which.max(aintavg$avg)]
+```
+
+The mean number of steps per day are `r as.integer(maxstepinterval)`
 
 ## Imputing missing values
 
+1. Count total number of NAs
+```{r, echo=TRUE}
+nacount<-sum(is.na(adat2))
+```
+
+2. Install some more required packages
+
+```{r, echo=TRUE}
+require("imputeR")
+require("ggplot2")
+```
+
+3. Impute data using the lasso function
+```{r, echo=TRUE}
+impdata <- as.data.frame(impute(adat2, lmFun = "lassoR",cFun="lassoC")$imp)
+adat2$steps <-impdata$steps
+```
+
+4. Recalculate mean and median with imputed data .Summarize data by date
+```{r, echo=TRUE}
+adatsum2<-ddply(adat2,~date,summarize,total=sum(steps))
+```
+
+5. Calculate mean and median number of steps per day
+```{r, echo=TRUE}
+meansteps2 <- mean(adatsum2$total)
+mediansteps2 <- median(adatsum2$total)
+```
+
+Comparison of the parameters before and after imputing is shown in the following table.
+
+Parameter |Before imputing | After imputing
+------------|------------------|-----------
+Mean steps |  `r as.integer(meansteps)` | `r as.integer(meansteps2)`
+Median steps |  `r as.integer(mediansteps)` | `r as.integer(mediansteps2)`
+
+
+6. Make a histogram
+```{r, echo=TRUE}
+hist(adatsum2$total)
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+1. For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
+```{r, echo=TRUE}
+adat2$day <-weekdays(adat2$date)
+```
+
+2. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+```{r, echo=TRUE}
+adat2$weekd[adat2$day %in% c("Saturday","Sunday")] <- "weekend"
+adat2$weekd[!(adat2$day %in% c("Saturday","Sunday"))] <- "weekday"
+adat2$weekd <-as.factor(adat2$weekd)
+```
+
+3. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was created using simulated data.
+
+```{r, echo=TRUE}
+wkavg<-ddply(adat2,weekd~interval,summarize,avg=mean(steps))
+qplot(x=interval,y=avg,data=wkavg,facets = weekd ~.,geom="line")
+```
+
+There are notable differences between weekday and weekend as seen from the plots above. 
