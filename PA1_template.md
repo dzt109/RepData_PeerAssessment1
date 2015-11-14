@@ -13,10 +13,10 @@ for (i in dir(pattern="\\.zip$"))
 {  unzip(i) }
 ```
 
-2. Set working directory to the unzipped folder and read the CSV file. 
+2. Read the CSV file. 
 
 ```r
-setwd("repdata-data-activity")
+#setwd("repdata-data-activity")
 adat<-read.csv("activity.csv")
 ```
 
@@ -122,11 +122,11 @@ impdata <- as.data.frame(impute(adat2, lmFun = "lassoR",cFun="lassoC")$imp)
 ```
 ## Imputation task is: Regression 
 ## iteration 1 using lassoR in progress...done!
-## Difference after iteration 1 is 8.547569e-09 
+## Difference after iteration 1 is 8.774289e-09 
 ## iteration 2 using lassoR in progress...done!
-## Difference after iteration 2 is 5.419617e-12 
+## Difference after iteration 2 is 0 
 ## iteration 3 using lassoR in progress...done!
-## Difference after iteration 3 is 1.343136e-11
+## Difference after iteration 3 is 9.257713e-12
 ```
 
 ```r

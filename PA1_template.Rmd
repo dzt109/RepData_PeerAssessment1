@@ -18,9 +18,9 @@ for (i in dir(pattern="\\.zip$"))
 {  unzip(i) }
 ```
 
-2. Set working directory to the unzipped folder and read the CSV file. 
+2. Read the CSV file. 
 ```{r, echo=TRUE}
-setwd("repdata-data-activity")
+#setwd("repdata-data-activity")
 adat<-read.csv("activity.csv")
 ```
 
