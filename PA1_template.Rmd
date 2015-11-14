@@ -87,14 +87,14 @@ The mean number of steps per day are `r as.integer(maxstepinterval)`
 nacount<-sum(is.na(adat2))
 ```
 
-2. Install some more required packages
+2. Install some more required packages for imputation.
 
 ```{r, echo=TRUE}
 require("imputeR")
 require("ggplot2")
 ```
 
-3. Impute data using the lasso function
+3. Impute data using the lasso function (this is my imputation strategy)
 ```{r, echo=TRUE}
 impdata <- as.data.frame(impute(adat2, lmFun = "lassoR",cFun="lassoC")$imp)
 adat2$steps <-impdata$steps

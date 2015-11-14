@@ -94,7 +94,7 @@ The mean number of steps per day are 835
 nacount<-sum(is.na(adat2))
 ```
 
-2. Install some more required packages
+2. Install some more required packages for imputation.
 
 
 ```r
@@ -113,7 +113,7 @@ require("ggplot2")
 ## Loading required package: ggplot2
 ```
 
-3. Impute data using the lasso function
+3. Impute data using the lasso function (this is my imputation strategy)
 
 ```r
 impdata <- as.data.frame(impute(adat2, lmFun = "lassoR",cFun="lassoC")$imp)
@@ -122,11 +122,13 @@ impdata <- as.data.frame(impute(adat2, lmFun = "lassoR",cFun="lassoC")$imp)
 ```
 ## Imputation task is: Regression 
 ## iteration 1 using lassoR in progress...done!
-## Difference after iteration 1 is 8.774289e-09 
+## Difference after iteration 1 is 9.176178e-09 
 ## iteration 2 using lassoR in progress...done!
-## Difference after iteration 2 is 0 
+## Difference after iteration 2 is 2.186664e-11 
 ## iteration 3 using lassoR in progress...done!
-## Difference after iteration 3 is 9.257713e-12
+## Difference after iteration 3 is 1.343136e-11 
+## iteration 4 using lassoR in progress...done!
+## Difference after iteration 4 is 4.545955e-11
 ```
 
 ```r
