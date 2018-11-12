@@ -73,96 +73,197 @@ NOTE: The GitHub repository also contains the dataset for the
 assignment so you do not have to download the data separately.
 
 
-
-### Loading and preprocessing the data
-
-Show any code that is needed to
-
-1. Load the data (i.e. `read.csv()`)
-
-2. Process/transform the data (if necessary) into a format suitable for your analysis
+# Reproducible Research: Peer Assessment 1
 
 
-### What is mean total number of steps taken per day?
+## Loading and preprocessing the data
 
-For this part of the assignment, you can ignore the missing values in
-the dataset.
+1. Download the file and unzip it.
 
-1. Make a histogram of the total number of steps taken each day
-
-2. Calculate and report the **mean** and **median** total number of steps taken per day
-
-
-### What is the average daily activity pattern?
-
-1. Make a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-
-2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-
-
-### Imputing missing values
-
-Note that there are a number of days/intervals where there are missing
-values (coded as `NA`). The presence of missing days may introduce
-bias into some calculations or summaries of the data.
-
-1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with `NA`s)
-
-2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
-
-3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
-
-4. Make a histogram of the total number of steps taken each day and Calculate and report the **mean** and **median** total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
-
-
-### Are there differences in activity patterns between weekdays and weekends?
-
-For this part the `weekdays()` function may be of some help here. Use
-the dataset with the filled-in missing values for this part.
-
-1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
-
-1. Make a panel plot containing a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was created using **simulated data**:
-
-![Sample panel plot](instructions_fig/sample_panelplot.png) 
-
-
-**Your plot will look different from the one above** because you will
-be using the activity monitor data. Note that the above plot was made
-using the lattice system but you can make the same version of the plot
-using any plotting system you choose.
-
-
-## Submitting the Assignment
-
-To submit the assignment:
-
-1. Commit your completed `PA1_template.Rmd` file to the `master` branch of your git repository (you should already be on the `master` branch unless you created new ones)
-
-2. Commit your `PA1_template.md` and `PA1_template.html` files produced by processing your R markdown file with the `knit2html()` function in R (from the **knitr** package)
-
-3. If your document has figures included (it should) then they should have been placed in the `figure/` directory by default (unless you overrode the default). Add and commit the `figure/` directory to your git repository.
-
-4. Push your `master` branch to GitHub.
-
-5. Submit the URL to your GitHub repository for this assignment on the course web site.
-
-In addition to submitting the URL for your GitHub repository, you will
-need to submit the 40 character SHA-1 hash (as string of numbers from
-0-9 and letters from a-f) that identifies the repository commit that
-contains the version of the files you want to submit. You can do this
-in GitHub by doing the following:
-
-1. Go into your GitHub repository web page for this assignment
-
-2. Click on the "?? commits" link where ?? is the number of commits you have in the repository. For example, if you made a total of 10 commits to this repository, the link should say "10 commits".
-
-3. You will see a list of commits that you have made to this repository. The most recent commit is at the very top. If this represents the version of the files you want to submit, then just click the "copy to clipboard" button on the right hand side that should appear when you hover over the SHA-1 hash. Paste this SHA-1 hash into the course web site when you submit your assignment. If you don't want to use the most recent commit, then go down and find the commit you want and copy the SHA-1 hash.
-
-A valid submission will look something like (this is just an **example**!)
 
 ```r
-https://github.com/rdpeng/RepData_PeerAssessment1
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip",destfile=".\\repdataproj.zip")
 
-7c376cc5447f11537f8740af8e07d6facc3d9645
+for (i in dir(pattern="\\.zip$"))
+{  unzip(i) }
 ```
+
+2. Read the CSV file. 
+
+```r
+#setwd("repdata-data-activity")
+adat<-read.csv("activity.csv")
+```
+
+
+3. Convert to date format
+
+```r
+adat$date<-as.Date(as.character(adat$date))
+```
+
+4. Load a required library
+
+```r
+library(plyr)
+```
+
+5. Save a copy of the original dataset. Remove all NAs for the first analysis.
+
+
+```r
+adat2<-adat
+adat<-adat[!is.na(adat$steps),]
+```
+
+## What is mean total number of steps taken per day?
+
+1. Use library plyr for summarizing data by date
+
+```r
+adatsum<-ddply(adat,~date,summarize,total=sum(steps))
+```
+
+2. Calculate mean and median number of steps per day
+
+
+```r
+meansteps <- mean(adatsum$total)
+mediansteps <- median(adatsum$total)
+```
+
+The mean number of steps per day are 10766
+The median number of steps per day are 10765
+
+## What is the average daily activity pattern?
+
+1. Calculate activity pattern by 5-min interval
+
+
+```r
+aintavg<-ddply(adat,~interval,summarize,avg=mean(steps))
+```
+
+2. Plot activity pattern by 5-min interval
+
+
+```r
+with(aintavg,plot(x=interval, y=avg, type='l'))
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png) 
+
+3. Find interval with max average number of steps
+
+```r
+maxstepinterval <- aintavg$interval[which.max(aintavg$avg)]
+```
+
+The mean number of steps per day are 835
+
+## Imputing missing values
+
+1. Count total number of NAs
+
+```r
+nacount<-sum(is.na(adat2))
+```
+
+2. Install some more required packages for imputation.
+
+
+```r
+require("imputeR")
+```
+
+```
+## Loading required package: imputeR
+```
+
+```r
+require("ggplot2")
+```
+
+```
+## Loading required package: ggplot2
+```
+
+3. Impute data using the lasso function (this is my imputation strategy)
+
+```r
+impdata <- as.data.frame(impute(adat2, lmFun = "lassoR",cFun="lassoC")$imp)
+```
+
+```
+## Imputation task is: Regression 
+## iteration 1 using lassoR in progress...done!
+## Difference after iteration 1 is 9.176178e-09 
+## iteration 2 using lassoR in progress...done!
+## Difference after iteration 2 is 2.186664e-11 
+## iteration 3 using lassoR in progress...done!
+## Difference after iteration 3 is 1.343136e-11 
+## iteration 4 using lassoR in progress...done!
+## Difference after iteration 4 is 4.545955e-11
+```
+
+```r
+adat2$steps <-impdata$steps
+```
+
+4. Recalculate mean and median with imputed data .Summarize data by date
+
+```r
+adatsum2<-ddply(adat2,~date,summarize,total=sum(steps))
+```
+
+5. Calculate mean and median number of steps per day
+
+```r
+meansteps2 <- mean(adatsum2$total)
+mediansteps2 <- median(adatsum2$total)
+```
+
+Comparison of the parameters before and after imputing is shown in the following table.
+
+Parameter |Before imputing | After imputing
+------------|------------------|-----------
+Mean steps |  10766 | 10766
+Median steps |  10765 | 10766
+
+
+6. Make a histogram
+
+```r
+hist(adatsum2$total)
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-16-1.png) 
+
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+1. For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
+
+```r
+adat2$day <-weekdays(adat2$date)
+```
+
+2. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+
+```r
+adat2$weekd[adat2$day %in% c("Saturday","Sunday")] <- "weekend"
+adat2$weekd[!(adat2$day %in% c("Saturday","Sunday"))] <- "weekday"
+adat2$weekd <-as.factor(adat2$weekd)
+```
+
+3. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was created using simulated data.
+
+
+```r
+wkavg<-ddply(adat2,weekd~interval,summarize,avg=mean(steps))
+qplot(x=interval,y=avg,data=wkavg,facets = weekd ~.,geom="line")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-19-1.png) 
+
+There are notable differences between weekday and weekend as seen from the plots above. 
